@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { AlertController, ToastController, ActionSheetController } from '@ionic/angular';
+import { HomeService } from './home.service';
+import { Task } from '../model/tasks.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -9,11 +12,13 @@ import { AlertController, ToastController, ActionSheetController } from '@ionic/
 export class HomePage {
 
 
-  tasks: any[] = []
+  tasks: Task[] = []
+  public subject: Subscription
 
 
 
   constructor(
+    private taskService: HomeService,
     private alertControl: AlertController,
     private toastControl: ToastController,
     private actionSheetControl: ActionSheetController
@@ -21,7 +26,12 @@ export class HomePage {
   ) { }
 
   ngOnInit() {
-    this.getLocalStorage();
+    this.subject = this.taskService.getTasks().subscribe(data =>{
+    
+    this.tasks = data 
+    console.log(this.tasks)
+  })
+   
     console.log(this.tasks)
   }
 
@@ -69,9 +79,9 @@ export class HomePage {
       return;
     }
 
-    let task = { name: newTask, done: false }
+    let task = {  name: newTask, done: false }
     this.tasks.push(task);
-    this.updateLocalStorage();
+    // this.taskService.updateLocalStorage(this.tasks);
 
 
   }
@@ -79,7 +89,7 @@ export class HomePage {
   deletar(task: any){
 
     this.tasks = this.tasks.filter(taskArray => task != taskArray);
-    this.updateLocalStorage()
+    // this.taskService.updateLocalStorage(this.tasks);
   }
 
   async openActions(task: any) {
@@ -91,7 +101,7 @@ export class HomePage {
           icon: task.done ? 'radion-button-off' : 'checkmark-circle',
           handler: () => {
             task.done = !task.done;
-            this.updateLocalStorage();
+            // this.taskService.updateLocalStorage(this.tasks);
           }
         },
         {
@@ -109,17 +119,5 @@ export class HomePage {
     await actionSheet.present()
 
   }
-
-
-  updateLocalStorage() {
-    localStorage.setItem('taskDB', JSON.stringify(this.tasks));
-  }
-
-  getLocalStorage() {
-    let taskDB = localStorage.getItem('taskDB');
-    if (taskDB != null) {
-      this.tasks = JSON.parse(taskDB);
-    }
-  }
-
+  
 }
